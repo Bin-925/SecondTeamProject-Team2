@@ -32,11 +32,13 @@ public class AuthService {
     private int refreshTokenExpireSeconds;
 
     public TokenResponse login(String id, String password) {
+        // 아이디가 없는 경우와 비밀번호가 틀린 경우를 같은 문구로 응답한다.
+        // (아이디 존재 여부가 그대로 노출되면 계정 존재 여부를 유추할 수 있어 보안상 좋지 않다)
         User user = userRepository.findByLoginIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new ServiceException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new ServiceException(ErrorCode.AUTH_LOGIN_FAILED));
 
         if (!passwordEncoder.matches(password, user.getPassword()))
-            throw new ServiceException(ErrorCode.AUTH_PASSWORD_MISMATCH);
+            throw new ServiceException(ErrorCode.AUTH_LOGIN_FAILED);
 
         return issueTokens(user);
     }
